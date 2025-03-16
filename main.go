@@ -7,7 +7,10 @@ import (
 )
 
 func main() {
+	// Create the Bubbletea program with the initial model
 	p := tea.NewProgram(initialModel())
+
+	// Start the program and handle any errors
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
 	}

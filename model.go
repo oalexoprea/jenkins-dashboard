@@ -7,23 +7,51 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 )
 
+// View modes to distinguish between job and build views
+type viewMode int
+
+const (
+	viewJobs viewMode = iota
+	viewBuilds
+)
+
+// Job model for Jenkins jobs (folders or pipelines)
 type Job struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
+	Class string `json:"_class"`
+	URL   string `json:"url"`
 }
 
+// Build model for Jenkins builds
+type Build struct {
+	Number    int    `json:"number"`
+	Result    string `json:"result"`
+	Timestamp int64  `json:"timestamp"`
+	Duration  int64  `json:"duration"`
+	URL       string `json:"url"`
+}
+
+// Response model for Jenkins job API
 type JenkinsResponse struct {
 	Jobs []Job `json:"jobs"`
 }
 
+// Main application model
 type model struct {
-	jobs     []Job
-	list     list.Model
-	spinner  spinner.Model
-	loading  bool
-	errorMsg string
+	jobs         []Job
+	builds       []Build
+	list         list.Model
+	spinner      spinner.Model
+	mode         viewMode
+	loading      bool
+	errorMsg     string
+	breadcrumbs  []string
+	currentPage  int
+	itemsPerPage int
 }
 
+// Initial model setup
 func initialModel() model {
 	sp := spinner.New()
 	sp.Spinner = spinner.Dot
@@ -33,14 +61,17 @@ func initialModel() model {
 	ls.Title = "Jenkins Jobs"
 
 	return model{
-		jobs:     []Job{},
-		list:     ls,
-		spinner:  sp,
-		loading:  true,
-		errorMsg: "",
+		list:         ls,
+		spinner:      sp,
+		mode:         viewJobs,
+		loading:      true,
+		itemsPerPage: 5,
+		currentPage:  0,
 	}
 }
 
+// Messages exchanged between update and commands
 type jobsMsg []Job
+type buildsMsg []Build
 type errMsg string
 type tickMsg time.Time
