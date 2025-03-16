@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/guptarohit/asciigraph"
 )
 
 func (m model) View() string {
@@ -22,10 +23,13 @@ func (m model) View() string {
 		Render(breadcrumbsView(m.breadcrumbs))
 
 	var content string
-	if m.mode == viewJobs {
+	switch m.mode {
+	case viewJobs:
 		content = m.list.View()
-	} else if m.mode == viewBuilds {
+	case viewBuilds:
 		content = m.buildsTableView()
+	case viewGraphs:
+		content = m.graphView()
 	}
 
 	return fmt.Sprintf("%s\n\n%s", breadcrumbBar, content)
@@ -141,4 +145,48 @@ func colorizeBuildResult(result string) string {
 	default:
 		return unknownStyle.Render(result)
 	}
+}
+
+func (m model) graphView() string {
+	if len(m.builds) == 0 {
+		return "No builds to graph. Press [b] to go back."
+	}
+
+	// Cumulative success calculation
+	successHistory := []float64{}
+	var cumulativeSuccess float64
+
+	for i := len(m.builds) - 1; i >= 0; i-- {
+		build := m.builds[i]
+		if build.Result == "SUCCESS" {
+			cumulativeSuccess++
+		}
+		successHistory = append(successHistory, cumulativeSuccess)
+	}
+
+	// Derivative (change rate)
+	derivative := []float64{}
+	for i := 1; i < len(successHistory); i++ {
+		delta := successHistory[i] - successHistory[i-1]
+		derivative = append(derivative, delta)
+	}
+
+	if len(successHistory) < 2 {
+		return "Not enough build data to plot graphs.\nPress [b] to go back."
+	}
+
+	// Build graphs (safe)
+	cumulativeGraph := asciigraph.Plot(successHistory,
+		asciigraph.Height(10),
+		asciigraph.Width(50),
+		asciigraph.Caption("Cumulative Success Trend (Integral)"),
+	)
+
+	derivativeGraph := asciigraph.Plot(derivative,
+		asciigraph.Height(10),
+		asciigraph.Width(50),
+		asciigraph.Caption("Success Rate (Derivative)"),
+	)
+
+	return fmt.Sprintf("%s\n\n%s\n\n[b] Back", cumulativeGraph, derivativeGraph)
 }

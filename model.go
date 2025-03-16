@@ -13,6 +13,7 @@ type viewMode int
 const (
 	viewJobs viewMode = iota
 	viewBuilds
+	viewGraphs
 )
 
 // Job model for Jenkins jobs (folders or pipelines)

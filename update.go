@@ -30,6 +30,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loading = true
 			return m, fetchJobs()
 
+		case "g":
+			m.mode = viewGraphs
+			return m, nil
+
 		case "enter":
 			selectedItem, ok := m.list.SelectedItem().(Job)
 			if !ok {
