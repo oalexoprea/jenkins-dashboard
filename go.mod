@@ -1,6 +1,6 @@
 module github.com/oalexoprea/jenkins-dashboard
 
-go 1.24
+go 1.22
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
