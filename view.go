@@ -182,6 +182,10 @@ func (m model) graphView() string {
 		asciigraph.Caption("Cumulative Success Trend (Integral)"),
 	)
 
+	if len(derivative) == 0 {
+		return fmt.Sprintf("%s\n\nNot enough data to plot derivative graph.\n\n[b] Back", cumulativeGraph)
+	}
+
 	derivativeGraph := asciigraph.Plot(derivative,
 		asciigraph.Height(10),
 		asciigraph.Width(50),
